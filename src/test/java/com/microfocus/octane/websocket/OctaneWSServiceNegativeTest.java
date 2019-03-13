@@ -1,5 +1,6 @@
 package com.microfocus.octane.websocket;
 
+import com.microfocus.octane.websocket.clients.EndpointClientTestA;
 import org.junit.Test;
 
 public class OctaneWSServiceNegativeTest {
@@ -104,5 +105,72 @@ public class OctaneWSServiceNegativeTest {
 		builder.build();
 
 		builder.setSecret("new_secret");
+	}
+
+	//	BUILD CLIENT WITH NULL CONTEXT
+	@Test(expected = IllegalArgumentException.class)
+	public void testE1() {
+		EndpointClientTestA clientTestA = new EndpointClientTestA(null);
+	}
+
+	//	USE PARTIALLY INITIALIZED CLIENT
+	@Test(expected = IllegalStateException.class)
+	public void testF1() {
+		OctaneWSClientContext.OctaneWSClientContextBuilder builder = OctaneWSClientContext.builder()
+				.setEndpointUrl("ws://localhost:8080")
+				.setClient("some_client")
+				.setSecret("some_secret");
+		OctaneWSClientContext context = builder.build();
+
+		OctaneWSEndpointClient client = new EndpointClientTestA(context);
+
+		client.sendBinary(new byte[]{0, 1});
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testF2() {
+		OctaneWSClientContext.OctaneWSClientContextBuilder builder = OctaneWSClientContext.builder()
+				.setEndpointUrl("ws://localhost:8080")
+				.setClient("some_client")
+				.setSecret("some_secret");
+		OctaneWSClientContext context = builder.build();
+
+		OctaneWSEndpointClient client = new EndpointClientTestA(context);
+
+		client.sendString("some text");
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testF3() {
+		OctaneWSClientContext.OctaneWSClientContextBuilder builder = OctaneWSClientContext.builder()
+				.setEndpointUrl("ws://localhost:8080")
+				.setClient("some_client")
+				.setSecret("some_secret");
+		OctaneWSClientContext context = builder.build();
+
+		OctaneWSEndpointClient client = new EndpointClientTestA(context);
+		try {
+			OctaneWSClientService.getInstance().initClient(client);
+		} catch (Exception e) {
+			//
+		}
+		client.sendBinary(new byte[]{0, 1});
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void testF4() {
+		OctaneWSClientContext.OctaneWSClientContextBuilder builder = OctaneWSClientContext.builder()
+				.setEndpointUrl("ws://localhost:8080")
+				.setClient("some_client")
+				.setSecret("some_secret");
+		OctaneWSClientContext context = builder.build();
+
+		OctaneWSEndpointClient client = new EndpointClientTestA(context);
+		try {
+			OctaneWSClientService.getInstance().initClient(client);
+		} catch (Exception e) {
+			//
+		}
+		client.sendString("some text");
 	}
 }

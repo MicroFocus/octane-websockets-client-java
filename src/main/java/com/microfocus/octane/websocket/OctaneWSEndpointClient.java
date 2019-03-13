@@ -32,12 +32,6 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		if (context == null) {
 			throw new IllegalArgumentException("context MUST NOT be null");
 		}
-		if (context.endpointUrl == null) {
-			throw new IllegalArgumentException("WS endpoint URI MUST NOT be NULL");
-		}
-		if (context.client == null || context.client.isEmpty()) {
-			throw new IllegalArgumentException("client MUST NOT be NULL nor EMPTY");
-		}
 		this.context = context;
 	}
 

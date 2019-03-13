@@ -1,6 +1,7 @@
 package com.microfocus.octane.websocket;
 
 import com.microfocus.octane.websocket.clients.EndpointClientTestA;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class OctaneWSServiceTest {

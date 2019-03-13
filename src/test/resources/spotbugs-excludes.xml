@@ -1,0 +1,6 @@
+<FindBugsFilter>
+	<Match>
+		<Class name="com.microfocus.octane.websocket.OctaneWSClientService"/>
+		<Bug pattern="DC_DOUBLECHECK"/>
+	</Match>
+</FindBugsFilter>
