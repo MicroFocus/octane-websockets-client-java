@@ -34,6 +34,7 @@
 		<junit.version>4.12</junit.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
 		<jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
+		<jetty.version>9.4.15.v20190215</jetty.version>
 	</properties>
 
 	<distributionManagement>
@@ -86,6 +87,24 @@
 			<artifactId>junit</artifactId>
 			<groupId>junit</groupId>
 			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>jetty-server</artifactId>
+			<groupId>org.eclipse.jetty</groupId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>websocket-server</artifactId>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<version>${jetty.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>websocket-servlet</artifactId>
+			<groupId>org.eclipse.jetty.websocket</groupId>
+			<version>${jetty.version}</version>
 			<scope>test</scope>
 		</dependency>
 
