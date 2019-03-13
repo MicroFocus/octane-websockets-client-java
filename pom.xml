@@ -158,7 +158,7 @@
 					<configuration>
 						<effort>max</effort>
 						<maxRank>20</maxRank>
-						<excludeFilterFile>test/resources/spotbugs-excludes.xml</excludeFilterFile>
+						<excludeFilterFile>src/test/resources/spotbugs-excludes.xml</excludeFilterFile>
 					</configuration>
 					<executions>
 						<execution>
