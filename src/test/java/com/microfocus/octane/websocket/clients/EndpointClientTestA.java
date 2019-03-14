@@ -4,18 +4,20 @@ import com.microfocus.octane.websocket.OctaneWSEndpointClient;
 import com.microfocus.octane.websocket.OctaneWSClientContext;
 
 public class EndpointClientTestA extends OctaneWSEndpointClient {
+	public byte[] lastReceivedBinary;
+	public String lastReceivedString;
 
 	public EndpointClientTestA(OctaneWSClientContext context) {
 		super(context);
 	}
 
 	@Override
-	public void onStringMessage(String message) {
-		System.out.println("something");
+	public void onBinaryMessage(byte[] message) {
+		lastReceivedBinary = message;
 	}
 
 	@Override
-	public void onBinaryMessage(byte[] message) {
-		System.out.println("something else");
+	public void onStringMessage(String message) {
+		lastReceivedString = message;
 	}
 }

@@ -45,6 +45,18 @@ public class OctaneWSServiceNegativeTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
+	public void testC23() {
+		OctaneWSClientContext.builder()
+				.setEndpointUrl("localhost:8080");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testC24() {
+		OctaneWSClientContext.builder()
+				.setEndpointUrl("sldfjsldkfj");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
 	public void testC3() {
 		OctaneWSClientContext.builder()
 				.setClient(null);
