@@ -70,12 +70,18 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 
 	@Override
 	public void onWebSocketClose(int code, String reason) {
+		session = null;
 		logger.info("session to " + context + " has been closed; code: " + code + ", reason: " + reason);
 	}
 
 	@Override
 	public void onWebSocketConnect(Session session) {
-		logger.info("session to " + context + " established connection");
+		if (this.session != null && this.session.isOpen()) {
+			logger.warn("found opened session while processing onWebSocketConnect event, abnormal behavior");
+			this.session.close();
+		}
+		this.session = session;
+		logger.info("session to " + context + " has been opened");
 	}
 
 	@Override
