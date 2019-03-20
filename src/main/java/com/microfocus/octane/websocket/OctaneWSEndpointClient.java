@@ -120,7 +120,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		return context;
 	}
 
-	final void start(WebSocketClient socketClient) {
+	final void start() {
 		int maxAttempts = 2;
 		int attempts = 0;
 		HttpCookie authToken = cachedAuthToken;
@@ -132,7 +132,9 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		while (attempts++ < maxAttempts) {
 			try {
 				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken, context.customHeaders);
-				Future<Session> connectPromise = socketClient.connect(this, context.endpointUrl, upgradeRequest);
+				Future<Session> connectPromise = OctaneWSClientService.getInstance()
+						.getWebSocketClient()
+						.connect(this, context.endpointUrl, upgradeRequest);
 				session = connectPromise.get();
 				//  TODO: validate session?
 				keepAliveService.execute(this::keepAlive);
@@ -182,6 +184,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 				session.getRemote().sendPing(pingBytes);
 			} catch (IOException ioe) {
 				logger.error("failed to PING endpoint, exiting keep alive and will attempt to reconnect if relevant");
+				safeSleep(20000);
 			} finally {
 				safeSleep(1000);
 			}

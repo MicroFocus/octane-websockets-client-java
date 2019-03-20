@@ -49,7 +49,11 @@ public class OctaneWSClientService {
 			throw new IllegalArgumentException("ws endpoint client MUST NOT be null");
 		}
 
-		octaneWSEndpointClient.start(webSocketClient);
+		octaneWSEndpointClient.start();
 		logger.info("successfully started client to " + octaneWSEndpointClient.getContext());
+	}
+
+	WebSocketClient getWebSocketClient() {
+		return webSocketClient;
 	}
 }
