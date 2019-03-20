@@ -4,6 +4,9 @@ import org.eclipse.jetty.http.HttpScheme;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class OctaneWSClientContext {
 	public final URI endpointUrl;
@@ -12,6 +15,7 @@ public final class OctaneWSClientContext {
 	public final String proxyUrl;
 	public final String proxyUsername;
 	public final String proxyPassword;
+	public final Map<String, String> customHeaders;
 
 	private OctaneWSClientContext(
 			URI endpointUrl,
@@ -19,7 +23,8 @@ public final class OctaneWSClientContext {
 			String secret,
 			String proxyUrl,
 			String proxyUsername,
-			String proxyPassword
+			String proxyPassword,
+			Map<String, String> customHeaders
 	) {
 		this.endpointUrl = endpointUrl;
 		this.client = client;
@@ -27,6 +32,7 @@ public final class OctaneWSClientContext {
 		this.proxyUrl = proxyUrl;
 		this.proxyUsername = proxyUsername;
 		this.proxyPassword = proxyPassword;
+		this.customHeaders = Collections.unmodifiableMap(customHeaders == null ? new HashMap<>() : customHeaders);
 	}
 
 	public static OctaneWSClientContextBuilder builder() {
@@ -49,6 +55,7 @@ public final class OctaneWSClientContext {
 		private String proxyUrl;
 		private String proxyUsername;
 		private String proxyPassword;
+		private Map<String, String> customHeaders;
 
 		private OctaneWSClientContextBuilder() {
 		}
@@ -133,6 +140,17 @@ public final class OctaneWSClientContext {
 			return this;
 		}
 
+		public OctaneWSClientContextBuilder setCustomHeaders(Map<String, String> customHeaders) {
+			validateBuildState();
+
+			if (customHeaders == null) {
+				throw new IllegalArgumentException("custom headers, if set, MUST NOT be NULL");
+			}
+
+			this.customHeaders = customHeaders;
+			return this;
+		}
+
 		public OctaneWSClientContext build() {
 			validateBuildState();
 			if (endpointUrl == null) {
@@ -145,13 +163,15 @@ public final class OctaneWSClientContext {
 			if (secret == null) {
 				secret = "";
 			}
+
 			OctaneWSClientContext result = new OctaneWSClientContext(
 					endpointUrl,
 					client,
 					secret,
 					proxyUrl,
 					proxyUsername,
-					proxyPassword
+					proxyPassword,
+					customHeaders
 			);
 			built = true;
 			return result;

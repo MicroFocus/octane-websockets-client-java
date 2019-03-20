@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
@@ -40,14 +41,18 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	 *
 	 * @param message binary message
 	 */
-	abstract public void onBinaryMessage(byte[] message);
+	public void onBinaryMessage(byte[] message) {
+		throw new IllegalStateException("not implemented");
+	}
 
 	/**
 	 * extensibility point for the consumer implementation to react on string messages
 	 *
 	 * @param message string message
 	 */
-	abstract public void onStringMessage(String message);
+	public void onStringMessage(String message) {
+		throw new IllegalStateException("not implemented");
+	}
 
 	@Override
 	public void onWebSocketBinary(byte[] message, int offset, int len) {
@@ -113,7 +118,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 
 		while (attempts++ < maxAttempts) {
 			try {
-				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken);
+				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken, context.customHeaders);
 				Future<Session> connectPromise = socketClient.connect(this, context.endpointUrl, upgradeRequest);
 				session = connectPromise.get();
 				//  TODO: validate session?
@@ -134,7 +139,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		}
 	}
 
-	private ClientUpgradeRequest prepareUpgradeRequest(HttpCookie authToken) {
+	private ClientUpgradeRequest prepareUpgradeRequest(HttpCookie authToken, Map<String, String> customHeaders) {
 		if (authToken == null) {
 			throw new IllegalArgumentException("auth token MUST NOT be NULL");
 		}
@@ -145,6 +150,11 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		result.setCookies(Collections.singletonList(authToken));
 
 		//  set headers
+		if (customHeaders != null && !customHeaders.isEmpty()) {
+			for (Map.Entry<String, String> header : customHeaders.entrySet()) {
+				result.setHeader(header.getKey(), header.getValue());
+			}
+		}
 
 		return result;
 	}

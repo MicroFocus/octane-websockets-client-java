@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OctaneWSServiceE2ETest {
 	private static int E2E_SERVER_PORT = 3333;
@@ -43,11 +45,14 @@ public class OctaneWSServiceE2ETest {
 	public void testLoginScenarios() {
 		E2ETestHttpServlet.expectedClient = "login_client";
 		E2ETestHttpServlet.expectedSecret = "login_secret";
+		Map<String, String> headers = new HashMap<>();
+		headers.put("header-name", "header-value");
 
 		OctaneWSClientContext context = OctaneWSClientContext.builder()
-				.setEndpointUrl("ws://localhost:" + E2E_SERVER_PORT + "/messaging/test")
+				.setEndpointUrl("ws://localhost:" + E2E_SERVER_PORT + "/messaging/test?param-a=a&param-b=b")
 				.setClient("login_client")
 				.setSecret("wrong_secret")
+				.setCustomHeaders(headers)
 				.build();
 
 		EndpointClientTestA client = new EndpointClientTestA(context);
@@ -58,11 +63,14 @@ public class OctaneWSServiceE2ETest {
 	public void testInterop() {
 		E2ETestHttpServlet.expectedClient = "login_client";
 		E2ETestHttpServlet.expectedSecret = "login_secret";
+		Map<String, String> headers = new HashMap<>();
+		headers.put("header-name", "header-value");
 
 		OctaneWSClientContext contextA = OctaneWSClientContext.builder()
-				.setEndpointUrl("ws://localhost:" + E2E_SERVER_PORT + "/messaging/test")
+				.setEndpointUrl("ws://localhost:" + E2E_SERVER_PORT + "/messaging/test?param-a=a&param-b=b")
 				.setClient("login_client")
 				.setSecret("login_secret")
+				.setCustomHeaders(headers)
 				.build();
 
 		EndpointClientTestA client = new EndpointClientTestA(contextA);

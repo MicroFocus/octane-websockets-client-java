@@ -22,7 +22,7 @@ Assuming, that your WS endpoint implementation class is `MyOctaneWSEndpointHandl
 //  Octane WS/WSS endpoints will always start from 'messaging'
 //  proxy settings are optionals
 OctaneWSClientContext context = OctaneWSClientContext.builder()
-		.setEndpointUrl("ws://some.octane.host:1111/messaging/some/ws/endpoint")
+		.setEndpointUrl("ws://some.octane.host:1111/messaging/some/ws/endpoint?param=value")
 		.setClient("your_ws_username")
 		.setSecret("your_ws_password")
 		.setProxyUrl("http://web-proxy.host:2222")
