@@ -3,10 +3,10 @@ package com.microfocus.octane.websocket;
 import com.microfocus.octane.websocket.exceptions.OctaneWSException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.StatusCode;
 import org.eclipse.jetty.websocket.api.UpgradeException;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
-import org.eclipse.jetty.websocket.client.WebSocketClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +85,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 
 	public void stop() {
 		if (session != null && session.isOpen()) {
-			session.close(1000, "client requested to close");
+			session.close(StatusCode.NORMAL, "client requested to close");
 		}
 		if (!keepAliveService.isShutdown()) {
 			keepAliveService.shutdown();
@@ -178,13 +178,18 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	private void keepAlive() {
 		logger.info("starting keep alive worker for client of " + context);
 		ByteBuffer pingBytes = ByteBuffer.wrap(new byte[]{0});
-		while (session.isOpen()) {
-			System.out.println("---");
+		while (!keepAliveService.isShutdown()) {
 			try {
 				session.getRemote().sendPing(pingBytes);
 			} catch (IOException ioe) {
 				logger.error("failed to PING endpoint, exiting keep alive and will attempt to reconnect if relevant");
-				safeSleep(20000);
+				safeSleep(3000);
+				if (session == null || !session.isOpen())
+					try {
+						start();
+					} catch (Exception e) {
+						//
+					}
 			} finally {
 				safeSleep(1000);
 			}

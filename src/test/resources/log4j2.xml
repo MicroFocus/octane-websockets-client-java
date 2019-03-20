@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" monitorInterval="30">
+	<Properties>
+		<Property name="logsFolder"/>
+		<Property name="DEFAULT_PATTERN">%d %-5level %logger [%t] - %msg%n</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${DEFAULT_PATTERN}"/>
+		</Console>
+
+		<RollingFile name="testAppender" fileName="${sys:logsFolder}logs/ws-client.log"
+		             filePattern="${sys:logsFolder}logs/ws-client-%i.log">
+			<PatternLayout pattern="${DEFAULT_PATTERN}"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="10"/>
+		</RollingFile>
+		<Async name="testAsyncAppender">
+			<AppenderRef ref="testAppender"/>
+		</Async>
+	</Appenders>
+
+	<Loggers>
+
+		<Logger name="com.microfocus.octane.websocket" level="info" additivity="false">
+			<AppenderRef ref="agentAsyncAppender"/>
+			<AppenderRef ref="console"/>
+		</Logger>
+
+		<Root level="info">
+			<AppenderRef ref="agentAsyncAppender"/>
+			<AppenderRef ref="console"/>
+		</Root>
+	</Loggers>
+</Configuration>

@@ -27,7 +27,7 @@ public class OctaneWSServiceE2ETest {
 	private static Server testServer;
 
 	@BeforeClass
-	public static void prepareTests() throws Exception {
+	public static void startTestServer() throws Exception {
 		//  setup WS and HTTP server
 		String portParam = System.getProperty("octane.websockets.client.test.port");
 		testServer = TestWebSocketsSimulator.startWebsocketServer(
@@ -37,8 +37,15 @@ public class OctaneWSServiceE2ETest {
 	}
 
 	@AfterClass
-	public static void teardown() throws Exception {
+	public static void stopTestServer() throws Exception {
 		testServer.stop();
+		WSTestsUtils.waitAtMostFor(5000, () -> {
+			if (testServer.isStopped()) {
+				return true;
+			} else {
+				return null;
+			}
+		});
 	}
 
 	@Test(expected = OctaneWSAuthException.class)
@@ -76,7 +83,7 @@ public class OctaneWSServiceE2ETest {
 		EndpointClientTestA client = new EndpointClientTestA(contextA);
 		OctaneWSClientService.getInstance().initClient(client);
 
-		//  binary messaging ping pong
+		//  binary messaging 'ping pong'
 		E2ETestWSHandler.lastReceivedBinary = null;
 		client.lastReceivedBinary = null;
 		client.sendBinary(new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
@@ -85,7 +92,7 @@ public class OctaneWSServiceE2ETest {
 		WSTestsUtils.waitAtMostFor(3000, () -> client.lastReceivedBinary);
 		Assert.assertTrue(client.lastReceivedBinary.length == 10 && client.lastReceivedBinary[0] == 0 && client.lastReceivedBinary[5] == 5);
 
-		//  string messaging ping pong
+		//  string messaging 'ping pong'
 		E2ETestWSHandler.lastReceivedString = null;
 		client.lastReceivedString = null;
 		client.sendString("some ping text");
@@ -93,6 +100,46 @@ public class OctaneWSServiceE2ETest {
 		Assert.assertEquals("some ping text", E2ETestWSHandler.lastReceivedString);
 		WSTestsUtils.waitAtMostFor(3000, () -> client.lastReceivedString);
 		Assert.assertEquals("some ping text", client.lastReceivedString);
+
+		client.stop();
+		client.lastReceivedString = null;
+
+		WSTestsUtils.delay(4000);
+
+		Assert.assertNull(client.lastReceivedString);
+	}
+
+	@Test
+	public void serverDisconnectionTest() throws Exception {
+		E2ETestHttpServlet.expectedClient = "login_client";
+		E2ETestHttpServlet.expectedSecret = "login_secret";
+		Map<String, String> headers = new HashMap<>();
+		headers.put("header-name", "header-value");
+
+		OctaneWSClientContext contextA = OctaneWSClientContext.builder()
+				.setEndpointUrl("ws://localhost:" + E2E_SERVER_PORT + "/messaging/test?param-a=a&param-b=b")
+				.setClient("login_client")
+				.setSecret("login_secret")
+				.setCustomHeaders(headers)
+				.build();
+
+		EndpointClientTestA client = new EndpointClientTestA(contextA);
+		OctaneWSClientService.getInstance().initClient(client);
+
+		client.lastReceivedString = null;
+		client.sendString("some");
+		WSTestsUtils.waitAtMostFor(3000, () -> E2ETestWSHandler.lastReceivedString);
+		Assert.assertEquals("some", client.lastReceivedString);
+
+		stopTestServer();
+		WSTestsUtils.delay(4000);
+
+		startTestServer();
+		WSTestsUtils.delay(9000);
+
+		client.sendString("else");
+		WSTestsUtils.waitAtMostFor(3000, () -> E2ETestWSHandler.lastReceivedString);
+		Assert.assertEquals("else", client.lastReceivedString);
 
 		client.stop();
 	}
@@ -150,6 +197,7 @@ public class OctaneWSServiceE2ETest {
 
 		@Override
 		public void onWebSocketText(String message) {
+			System.out.println("message: " + message);
 			lastReceivedString = message;
 			try {
 				this.getSession().getRemote().sendString(message);

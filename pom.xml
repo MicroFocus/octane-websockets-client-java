@@ -29,6 +29,7 @@
 		<git.url>none</git.url>
 
 		<!--TESTS-->
+		<log4j.version>2.11.2</log4j.version>
 		<spotbugs.version>3.1.11</spotbugs.version>
 		<skipTests>true</skipTests>
 		<junit.version>4.12</junit.version>
@@ -83,6 +84,21 @@
 		</dependency>
 
 		<!--TESTS-->
+		<dependency>
+			<artifactId>log4j-api</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>log4j-core</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
 		<dependency>
 			<artifactId>junit</artifactId>
 			<groupId>junit</groupId>
