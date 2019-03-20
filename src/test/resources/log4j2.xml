@@ -26,12 +26,12 @@
 	<Loggers>
 
 		<Logger name="com.microfocus.octane.websocket" level="info" additivity="false">
-			<AppenderRef ref="agentAsyncAppender"/>
+			<AppenderRef ref="testAsyncAppender"/>
 			<AppenderRef ref="console"/>
 		</Logger>
 
 		<Root level="info">
-			<AppenderRef ref="agentAsyncAppender"/>
+			<AppenderRef ref="testAsyncAppender"/>
 			<AppenderRef ref="console"/>
 		</Root>
 	</Loggers>

@@ -121,6 +121,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	}
 
 	final void start() {
+		boolean done = false;
 		int maxAttempts = 2;
 		int attempts = 0;
 		HttpCookie authToken = cachedAuthToken;
@@ -129,15 +130,20 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 			authToken = AuthUtil.login(context);
 		}
 
-		while (attempts++ < maxAttempts) {
+		while (!done && attempts++ < maxAttempts) {
 			try {
 				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken, context.customHeaders);
+
 				Future<Session> connectPromise = OctaneWSClientService.getInstance()
 						.getWebSocketClient()
 						.connect(this, context.endpointUrl, upgradeRequest);
 				session = connectPromise.get();
 				//  TODO: validate session?
+
+				logger.info("starting keep alive worker for client of " + context);
 				keepAliveService.execute(this::keepAlive);
+
+				done = true;
 			} catch (Exception e) {
 				if (e.getCause() != null && e.getCause() instanceof UpgradeException && ((UpgradeException) e.getCause()).getResponseStatusCode() == HttpStatus.UNAUTHORIZED_401) {
 					logger.warn("failed to connect to " + context + " due to authentication (401); attempt " + attempts + " out of max " + maxAttempts);
@@ -176,18 +182,21 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	}
 
 	private void keepAlive() {
-		logger.info("starting keep alive worker for client of " + context);
 		ByteBuffer pingBytes = ByteBuffer.wrap(new byte[]{0});
 		while (!keepAliveService.isShutdown()) {
 			try {
-				session.getRemote().sendPing(pingBytes);
-			} catch (IOException ioe) {
-				logger.error("failed to PING endpoint, exiting keep alive and will attempt to reconnect if relevant");
+				if (session.isOpen()) {
+					session.getRemote().sendPing(pingBytes);
+				} else {
+					start();
+				}
+			} catch (Exception e) {
+				logger.error("failed to PING endpoint, will attempt to reconnect if relevant");
 				safeSleep(3000);
 				if (session == null || !session.isOpen())
 					try {
 						start();
-					} catch (Exception e) {
+					} catch (Exception e1) {
 						//
 					}
 			} finally {

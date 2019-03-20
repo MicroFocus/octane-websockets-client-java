@@ -128,7 +128,7 @@ public class OctaneWSServiceE2ETest {
 
 		client.lastReceivedString = null;
 		client.sendString("some");
-		WSTestsUtils.waitAtMostFor(3000, () -> E2ETestWSHandler.lastReceivedString);
+		WSTestsUtils.waitAtMostFor(3000, () -> client.lastReceivedString);
 		Assert.assertEquals("some", client.lastReceivedString);
 
 		stopTestServer();
@@ -137,8 +137,9 @@ public class OctaneWSServiceE2ETest {
 		startTestServer();
 		WSTestsUtils.delay(9000);
 
+		client.lastReceivedString = null;
 		client.sendString("else");
-		WSTestsUtils.waitAtMostFor(3000, () -> E2ETestWSHandler.lastReceivedString);
+		WSTestsUtils.waitAtMostFor(3000, () -> client.lastReceivedString);
 		Assert.assertEquals("else", client.lastReceivedString);
 
 		client.stop();
@@ -197,7 +198,6 @@ public class OctaneWSServiceE2ETest {
 
 		@Override
 		public void onWebSocketText(String message) {
-			System.out.println("message: " + message);
 			lastReceivedString = message;
 			try {
 				this.getSession().getRemote().sendString(message);

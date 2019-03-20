@@ -41,10 +41,10 @@ public final class OctaneWSClientContext {
 
 	@Override
 	public String toString() {
-		return "OctaneWSClientContext{ " +
+		return "OctaneWSClientContext { " +
 				"endpointUrl: " + endpointUrl +
 				", client: " + client +
-				", secret: " + secret + " }";
+				", secret: " + (secret == null ? null : (secret.length() < 3 ? "..." : (secret.charAt(0) + "..." + secret.charAt(secret.length() - 1)))) + " }";
 	}
 
 	public static final class OctaneWSClientContextBuilder {
