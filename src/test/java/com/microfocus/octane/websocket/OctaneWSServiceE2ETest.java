@@ -13,6 +13,8 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,12 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OctaneWSServiceE2ETest {
+	private static final Logger logger = LoggerFactory.getLogger(OctaneWSServiceE2ETest.class);
 	private static int E2E_SERVER_PORT = 3333;
 	private static Server testServer;
 
 	@BeforeClass
 	public static void startTestServer() throws Exception {
-		//  setup WS and HTTP server
+		logger.info("-- starting test server");
 		String portParam = System.getProperty("octane.websockets.client.test.port");
 		testServer = TestWebSocketsSimulator.startWebsocketServer(
 				portParam != null && !portParam.isEmpty() ? E2E_SERVER_PORT = Integer.parseInt(portParam) : E2E_SERVER_PORT,
@@ -38,6 +41,7 @@ public class OctaneWSServiceE2ETest {
 
 	@AfterClass
 	public static void stopTestServer() throws Exception {
+		logger.info("-- stopping test server");
 		testServer.stop();
 		WSTestsUtils.waitAtMostFor(5000, () -> {
 			if (testServer.isStopped()) {

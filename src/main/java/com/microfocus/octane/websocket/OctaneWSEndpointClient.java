@@ -90,11 +90,14 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	}
 
 	public void stop() {
-		if (session != null && session.isOpen()) {
-			session.close(StatusCode.NORMAL, "client requested to close");
-		}
+		logger.info("stopping Octane WS endpoint client...");
 		if (!keepAliveService.isShutdown()) {
+			logger.info("stopping keep alive service...");
 			keepAliveService.shutdown();
+		}
+		if (session != null && session.isOpen()) {
+			logger.info("closing session...");
+			session.close(StatusCode.NORMAL, "client requested to close (by hosting application)");
 		}
 	}
 
@@ -127,43 +130,11 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	}
 
 	final void start() {
-		boolean done = false;
-		int maxAttempts = 2;
-		int attempts = 0;
-		HttpCookie authToken = cachedAuthToken;
-
-		if (authToken == null) {
-			authToken = AuthUtil.login(context);
-		}
-
-		while (!done && attempts++ < maxAttempts) {
-			try {
-				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken, context.customHeaders);
-
-				Future<Session> connectPromise = OctaneWSClientService.getInstance()
-						.getWebSocketClient()
-						.connect(this, context.endpointUrl, upgradeRequest);
-				session = connectPromise.get();
-				//  TODO: validate session?
-
-				logger.info("starting keep alive worker for client of " + context);
-				keepAliveService.execute(this::keepAlive);
-
-				done = true;
-			} catch (Exception e) {
-				if (e.getCause() != null && e.getCause() instanceof UpgradeException && ((UpgradeException) e.getCause()).getResponseStatusCode() == HttpStatus.UNAUTHORIZED_401) {
-					logger.warn("failed to connect to " + context + " due to authentication (401); attempt " + attempts + " out of max " + maxAttempts);
-					authToken = AuthUtil.login(context);
-				} else {
-					throw new OctaneWSException("finally failed to connect to " + context, e);
-				}
-			}
-		}
-
+		startInternal();
 		if (session == null) {
 			throw new OctaneWSException("finally failed to connect to " + context + ", see previous logs for more info / errors");
 		} else {
-			cachedAuthToken = authToken;
+			keepAliveService.execute(this::keepAlive);
 		}
 	}
 
@@ -187,24 +158,56 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		return result;
 	}
 
+	private void startInternal() {
+		boolean done = false;
+		int maxAttempts = 2;
+		int attempts = 0;
+		HttpCookie authToken = cachedAuthToken;
+
+		if (authToken == null) {
+			authToken = AuthUtil.login(context);
+		}
+
+		while (!done && attempts++ < maxAttempts) {
+			try {
+				ClientUpgradeRequest upgradeRequest = prepareUpgradeRequest(authToken, context.customHeaders);
+
+				Future<Session> connectPromise = OctaneWSClientService.getInstance()
+						.getWebSocketClient()
+						.connect(this, context.endpointUrl, upgradeRequest);
+				session = connectPromise.get();
+				//  TODO: validate session?
+
+				logger.info("starting keep alive worker for client of " + context);
+
+				done = true;
+			} catch (Exception e) {
+				if (e.getCause() != null && e.getCause() instanceof UpgradeException && ((UpgradeException) e.getCause()).getResponseStatusCode() == HttpStatus.UNAUTHORIZED_401) {
+					logger.warn("failed to connect to " + context + " due to authentication (401); attempt " + attempts + " out of max " + maxAttempts);
+					authToken = AuthUtil.login(context);
+				} else {
+					throw new OctaneWSException("finally failed to connect to " + context, e);
+				}
+			}
+		}
+
+		if (done) {
+			cachedAuthToken = authToken;
+		}
+	}
+
 	private void keepAlive() {
 		ByteBuffer pingBytes = ByteBuffer.wrap(new byte[]{0});
 		while (!keepAliveService.isShutdown()) {
 			try {
-				if (session.isOpen()) {
+				if (session != null && session.isOpen()) {
 					session.getRemote().sendPing(pingBytes);
 				} else {
-					start();
+					startInternal();
 				}
 			} catch (Exception e) {
 				logger.error("failed to PING endpoint, will attempt to reconnect if relevant");
 				safeSleep(3000);
-				if (session == null || !session.isOpen())
-					try {
-						start();
-					} catch (Exception e1) {
-						//
-					}
 			} finally {
 				safeSleep(1000);
 			}
@@ -213,11 +216,8 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	}
 
 	private void validateWorkable() {
-		if (session == null) {
-			throw new IllegalStateException("endpoint session has not yet been initialized");
-		}
-		if (!session.isOpen()) {
-			throw new IllegalStateException("endpoint session is closed");
+		if (session == null || !session.isOpen()) {
+			throw new IllegalStateException("endpoint session has not yet been initialized or it was already closed");
 		}
 	}
 
