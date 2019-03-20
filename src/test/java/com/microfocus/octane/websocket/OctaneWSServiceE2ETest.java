@@ -93,6 +93,8 @@ public class OctaneWSServiceE2ETest {
 		Assert.assertEquals("some ping text", E2ETestWSHandler.lastReceivedString);
 		WSTestsUtils.waitAtMostFor(3000, () -> client.lastReceivedString);
 		Assert.assertEquals("some ping text", client.lastReceivedString);
+
+		client.stop();
 	}
 
 	public static final class E2ETestHttpServlet extends HttpServlet {

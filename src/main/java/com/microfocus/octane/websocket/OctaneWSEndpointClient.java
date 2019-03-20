@@ -15,16 +15,20 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * WebSocket client API, dedicated to interop with Octane's websocket endpoint
  * - each client is oriented to serve only one specific Octane instance
  * - each client is oriented to serve only one specific Octane endpoint
+ * - each client will attempt to preserve/renew connection if/when disconnected
  */
 public abstract class OctaneWSEndpointClient implements WebSocketListener {
 	private static final Logger logger = LoggerFactory.getLogger(OctaneWSEndpointClient.class);
-
+	private final ExecutorService keepAliveService = Executors.newSingleThreadExecutor(new WSEndpointClientKeepAliveThreadFactory());
 	private final OctaneWSClientContext context;
 	private HttpCookie cachedAuthToken;
 	private Session session;
@@ -79,6 +83,15 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		logger.error("session to " + context + " experienced error", throwable);
 	}
 
+	public void stop() {
+		if (session != null && session.isOpen()) {
+			session.close(1000, "client requested to close");
+		}
+		if (!keepAliveService.isShutdown()) {
+			keepAliveService.shutdown();
+		}
+	}
+
 	final public void sendString(String message) {
 		validateWorkable();
 		try {
@@ -122,6 +135,7 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 				Future<Session> connectPromise = socketClient.connect(this, context.endpointUrl, upgradeRequest);
 				session = connectPromise.get();
 				//  TODO: validate session?
+				keepAliveService.execute(this::keepAlive);
 			} catch (Exception e) {
 				if (e.getCause() != null && e.getCause() instanceof UpgradeException && ((UpgradeException) e.getCause()).getResponseStatusCode() == HttpStatus.UNAUTHORIZED_401) {
 					logger.warn("failed to connect to " + context + " due to authentication (401); attempt " + attempts + " out of max " + maxAttempts);
@@ -159,12 +173,50 @@ public abstract class OctaneWSEndpointClient implements WebSocketListener {
 		return result;
 	}
 
+	private void keepAlive() {
+		logger.info("starting keep alive worker for client of " + context);
+		ByteBuffer pingBytes = ByteBuffer.wrap(new byte[]{0});
+		while (session.isOpen()) {
+			System.out.println("---");
+			try {
+				session.getRemote().sendPing(pingBytes);
+			} catch (IOException ioe) {
+				logger.error("failed to PING endpoint, exiting keep alive and will attempt to reconnect if relevant");
+			} finally {
+				safeSleep(1000);
+			}
+		}
+		logger.info("keep alive worker exited");
+	}
+
 	private void validateWorkable() {
 		if (session == null) {
 			throw new IllegalStateException("endpoint session has not yet been initialized");
 		}
 		if (!session.isOpen()) {
 			throw new IllegalStateException("endpoint session is closed");
+		}
+	}
+
+	private void safeSleep(long millisToSleep) {
+		long started = System.currentTimeMillis();
+		while (System.currentTimeMillis() - started < millisToSleep) {
+			try {
+				Thread.sleep(millisToSleep);
+			} catch (InterruptedException ie) {
+				logger.warn("interrupted while safe-sleeping", ie);
+			}
+		}
+	}
+
+	private static final class WSEndpointClientKeepAliveThreadFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread result = new Thread(r);
+			result.setDaemon(true);
+			result.setName("WS endpoint client life keeper: " + result.getId());
+			return result;
 		}
 	}
 }
