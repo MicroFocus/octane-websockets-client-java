@@ -11,7 +11,7 @@
 	<properties>
 		<!--DEPENDENCIES-->
 		<slf4j.version>1.7.26</slf4j.version>
-		<websocket-client.version>9.4.15.v20190215</websocket-client.version>
+		<websocket-client.version>9.4.19.v20190610</websocket-client.version>
 
 		<!--BUILD-->
 		<jdk.version>1.8</jdk.version>
@@ -19,12 +19,12 @@
 		<enable.snapshots>false</enable.snapshots>
 		<versions-maven-plugin.version>2.7</versions-maven-plugin.version>
 		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
-		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+		<maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
 		<maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
 		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+		<maven-source-plugin.version>3.1.0</maven-source-plugin.version>
 		<git.revision>none</git.revision>
 		<git.url>none</git.url>
 
@@ -34,8 +34,8 @@
 		<skipTests>true</skipTests>
 		<junit.version>4.12</junit.version>
 		<maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
-		<jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
-		<jetty.version>9.4.15.v20190215</jetty.version>
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<jetty.version>9.4.19.v20190610</jetty.version>
 	</properties>
 
 	<distributionManagement>
