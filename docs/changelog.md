@@ -1,5 +1,8 @@
 ### Changelog
 
+##### 1.0
+- upgraded some of the dependencies to the latest
+
 ##### 0.2
 - improvements based on Octane's own REST tests
 - added support for custom headers in upgrade request
