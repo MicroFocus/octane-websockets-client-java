@@ -4,14 +4,14 @@ import com.microfocus.octane.websocket.exceptions.OctaneWSException;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.StatusCode;
-import org.eclipse.jetty.websocket.api.UpgradeException;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
+import org.eclipse.jetty.websocket.api.exceptions.UpgradeException;
 import org.eclipse.jetty.websocket.client.ClientUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.HttpCookie;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Map;

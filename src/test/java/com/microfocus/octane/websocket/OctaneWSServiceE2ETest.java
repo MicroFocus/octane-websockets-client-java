@@ -7,8 +7,8 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.websocket.api.WebSocketAdapter;
-import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
-import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
+import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -176,12 +176,12 @@ public class OctaneWSServiceE2ETest {
 	}
 
 
-	public static final class E2ETestWSServlet extends WebSocketServlet {
+	public static final class E2ETestWSServlet extends JettyWebSocketServlet {
 
 		@Override
-		public void configure(WebSocketServletFactory webSocketServletFactory) {
-			webSocketServletFactory.getPolicy().setMaxTextMessageSize(256 * 1024);
-			webSocketServletFactory.getPolicy().setMaxBinaryMessageSize(256 * 1024);
+		public void configure(JettyWebSocketServletFactory webSocketServletFactory) {
+			webSocketServletFactory.setMaxTextMessageSize(256 * 1024);
+			webSocketServletFactory.setMaxBinaryMessageSize(256 * 1024);
 			webSocketServletFactory.register(E2ETestWSHandler.class);
 		}
 	}
